@@ -71,8 +71,12 @@ export function previewFilterFrame(src, t, vf) {
   return r.stdout;
 }
 
+const LAMA_DISABLED_MSG =
+  "The AI (LaMa) engine isn't available in this deployment. Use delogo or removelogo.";
+
 // Single-frame LaMa preview via the Python worker -> JPEG Buffer.
 export function previewLamaFrame(src, t, maskPath, info, opts = {}) {
+  if (process.env.DISABLE_LAMA) throw new Error(LAMA_DISABLED_MSG);
   const py = process.env.PYTHON || "python";
   const worker = path.join(__dirname, "lama_preview.py");
   return new Promise((resolve, reject) => {
@@ -97,6 +101,7 @@ export function previewLamaFrame(src, t, maskPath, info, opts = {}) {
 // AI inpainting via the Python LaMa worker. Much better fill than delogo on
 // detailed backgrounds. Needs: pip install simple-lama-inpainting torch
 export function removeLama(src, dst, maskPath, info, opts = {}) {
+  if (process.env.DISABLE_LAMA) throw new Error(LAMA_DISABLED_MSG);
   const { crf = 18, preset = "medium", onProgress, fast = false } = opts;
   const py = process.env.PYTHON || "python";
   const worker = path.join(__dirname, "lama_worker.py");
