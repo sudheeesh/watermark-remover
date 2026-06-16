@@ -26,6 +26,7 @@ export default function App() {
   const [previewing, setPreviewing] = useState(false);
   const [fast, setFast] = useState(true);
   const [eta, setEta] = useState(null);
+  const [lamaAvailable, setLamaAvailable] = useState(true);
 
   const imgRef = useRef(null);
   const overlayRef = useRef(null);
@@ -37,6 +38,18 @@ export default function App() {
   const dispW = info ? Math.min(info.width, MAX_DISP_W) : 0;
   const dispH = info ? Math.round(dispW * (info.height / info.width)) : 0;
   const s = info ? info.width / dispW : 1; // display -> video scale
+
+  // ---- backend capabilities: hide the LaMa engine where it isn't available ----
+  useEffect(() => {
+    fetch(apiUrl("/api/health"))
+      .then((r) => r.json())
+      .then((h) => {
+        const ok = !!h.lama;
+        setLamaAvailable(ok);
+        if (!ok) setEngine((e) => (e === "lama" ? "removelogo" : e));
+      })
+      .catch(() => {}); // keep defaults if health is unreachable
+  }, []);
 
   // ---- upload ----
   async function handleFile(file) {
@@ -310,7 +323,7 @@ export default function App() {
               <div className="spacer" />
               <label className="field">Engine
                 <select value={engine} onChange={(e) => setEngine(e.target.value)}>
-                  <option value="lama">LaMa AI — best, real fill (slower)</option>
+                  {lamaAvailable && <option value="lama">LaMa AI — best, real fill (slower)</option>}
                   <option value="removelogo">removelogo (mask)</option>
                   <option value="delogo">delogo — fast but BLURS</option>
                 </select>

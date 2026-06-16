@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
 
 WORKDIR /app
 
-# Tell the app the AI engine isn't available in this deployment.
-ENV DISABLE_LAMA=1
+# The AI (LaMa) engine is opt-in via ENABLE_LAMA and stays OFF here — this image
+# has no Python/torch, and the free tier (512 MB) can't host PyTorch (~4 GB) anyway.
 
 # Node deps (cached separately from source).
 COPY package.json package-lock.json ./

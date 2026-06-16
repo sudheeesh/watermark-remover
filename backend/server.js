@@ -18,7 +18,7 @@ import { ffmpegAvailable, probe, extractFrame, FFMPEG, FFPROBE } from "./ffmpeg.
 import { detectBoxes } from "./detect.js";
 import {
   removeDelogo, removeRemovelogo, removeLama, writeMaskPng,
-  buildDelogoFilter, previewFilterFrame, previewLamaFrame,
+  buildDelogoFilter, previewFilterFrame, previewLamaFrame, lamaEnabled,
 } from "./removal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,7 +53,7 @@ function sse(job, event, data) {
 }
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: ffmpegAvailable(), ffmpeg: FFMPEG, ffprobe: FFPROBE });
+  res.json({ ok: ffmpegAvailable(), ffmpeg: FFMPEG, ffprobe: FFPROBE, lama: lamaEnabled() });
 });
 
 app.post("/api/upload", upload.single("video"), (req, res) => {
