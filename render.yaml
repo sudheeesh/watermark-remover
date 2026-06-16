@@ -1,0 +1,13 @@
+# Render blueprint for the watermark-remover backend.
+# Docker is required: the service needs Node + ffmpeg + Python/torch together.
+services:
+  - type: web
+    name: watermark-remover-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # LaMa (PyTorch, CPU) is memory-hungry. Use a plan with >=4 GB RAM or the
+    # `lama` engine will OOM-crash. The ffmpeg engines need much less.
+    plan: pro

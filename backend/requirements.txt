@@ -1,0 +1,4 @@
+numpy
+Pillow
+opencv-python-headless
+simple-lama-inpainting
