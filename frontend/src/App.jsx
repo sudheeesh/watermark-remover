@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiUrl } from "./api.js";
 
 const MAX_DISP_W = 960;
 
@@ -45,7 +46,7 @@ export default function App() {
     const fd = new FormData();
     fd.append("video", file);
     try {
-      const r = await fetch("/api/upload", { method: "POST", body: fd });
+      const r = await fetch(apiUrl("/api/upload"), { method: "POST", body: fd });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "upload failed");
       setVideo(data);
@@ -63,7 +64,7 @@ export default function App() {
   // ---- frame loading on seek (clears any stale preview) ----
   useEffect(() => {
     if (!video) return;
-    imgRef.current.src = `/api/frame/${video.id}?t=${t.toFixed(3)}`;
+    imgRef.current.src = apiUrl(`/api/frame/${video.id}?t=${t.toFixed(3)}`);
     setPreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return ""; });
   }, [video, t]);
 
@@ -158,7 +159,7 @@ export default function App() {
     if (!video) return;
     setError(""); setBusy("Auto-detecting static watermark…");
     try {
-      const r = await fetch(`/api/detect/${video.id}`, { method: "POST" });
+      const r = await fetch(apiUrl(`/api/detect/${video.id}`), { method: "POST" });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "detect failed");
       setBoxes((b) => [...b, ...data.boxes]);
@@ -201,7 +202,7 @@ export default function App() {
     setPreviewing(true);
     setBusy(engine === "lama" ? "Rendering LaMa preview… (a few seconds)" : "Rendering preview…");
     try {
-      const r = await fetch(`/api/preview/${video.id}`, {
+      const r = await fetch(apiUrl(`/api/preview/${video.id}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -236,21 +237,21 @@ export default function App() {
     }
     setBusy("Processing…");
     try {
-      const r = await fetch(`/api/process/${video.id}`, {
+      const r = await fetch(apiUrl(`/api/process/${video.id}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "process failed");
-      const es = new EventSource(`/api/progress/${data.jobId}`);
+      const es = new EventSource(apiUrl(`/api/progress/${data.jobId}`));
       es.addEventListener("progress", (ev) => {
         const d = JSON.parse(ev.data);
         setPct(d.pct || 0);
         if (d.eta != null) setEta(d.eta);
       });
       es.addEventListener("done", (ev) => {
-        const url = JSON.parse(ev.data).url;
+        const url = apiUrl(JSON.parse(ev.data).url);
         setPct(100); setEta(null); setBusy("Done — downloaded. Marks cleared for the next clip.");
         setResultUrl(url);
         triggerDownload(url);
